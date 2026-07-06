@@ -14,8 +14,8 @@
 
 import {
   formatAcceptQuery,
-  negotiateQuery,
   type MediaRangeInput,
+  negotiateQuery,
 } from "@danmat/accept-query";
 
 /** The QUERY method name. */
@@ -48,7 +48,11 @@ export class QueryRequestError extends Error {
   readonly status: number;
   readonly headers: Record<string, string>;
 
-  constructor(message: string, status: number, headers: Record<string, string> = {}) {
+  constructor(
+    message: string,
+    status: number,
+    headers: Record<string, string> = {},
+  ) {
     super(message);
     this.status = status;
     this.headers = headers;
@@ -157,9 +161,7 @@ export function checkQueryRequest(
  * Read a QUERY request body as JSON, guarding the content type. Throws a
  * {@link QueryRequestError} (`415` for a non-JSON type, `400` for invalid JSON).
  */
-export async function readQueryJson<T = unknown>(
-  request: Request,
-): Promise<T> {
+export async function readQueryJson<T = unknown>(request: Request): Promise<T> {
   const contentType = request.headers.get("content-type") ?? "";
   if (!/\bjson\b/i.test(contentType)) {
     throw new QueryRequestError(

@@ -1,12 +1,12 @@
-import { describe, it, expect } from "vitest";
+import { describe, expect, it } from "vitest";
 import {
-  isQueryRequest,
+  acceptQueryHeader,
   assertQueryRequest,
   checkQueryRequest,
-  readQueryJson,
-  acceptQueryHeader,
-  withAcceptQuery,
+  isQueryRequest,
   QueryRequestError,
+  readQueryJson,
+  withAcceptQuery,
 } from "../src/index.js";
 
 const queryReq = (init: RequestInit = {}) =>
@@ -69,12 +69,16 @@ describe("assertQueryRequest", () => {
   it("rejects an unsupported media type with 415 + Accept-Query", () => {
     const req = queryReq({ headers: { "content-type": "application/xml" } });
     try {
-      assertQueryRequest(req, { accept: ["application/json", "application/sql"] });
+      assertQueryRequest(req, {
+        accept: ["application/json", "application/sql"],
+      });
       throw new Error("should have thrown");
     } catch (error) {
       const err = error as QueryRequestError;
       expect(err.status).toBe(415);
-      expect(err.headers["accept-query"]).toBe("application/json, application/sql");
+      expect(err.headers["accept-query"]).toBe(
+        "application/json, application/sql",
+      );
     }
   });
 
