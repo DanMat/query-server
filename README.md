@@ -81,6 +81,8 @@ Returns a copy of `response` with the `Accept-Query` header set — handy on bot
 - [`@danmat/query-cache`](https://github.com/DanMat/query-cache) — body-aware response caching.
 - **`@danmat/query-server`** — server-side request validation & negotiation *(you are here)*.
 
+▶️ **See them work together:** [query-suite-example](https://github.com/DanMat/query-suite-example) — a runnable stock-screener demo using all four.
+
 ## License
 
 [MIT](./LICENSE) © Dan Matthew
