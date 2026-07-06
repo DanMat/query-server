@@ -1,0 +1,66 @@
+{
+  "name": "@danmat/query-server",
+  "version": "0.1.0",
+  "description": "Framework-agnostic server helpers for the HTTP QUERY method (RFC 10008): validate requests, negotiate content types, and advertise Accept-Query. Built on Web-standard Request/Response.",
+  "keywords": [
+    "http",
+    "query",
+    "query-method",
+    "rfc10008",
+    "rfc-10008",
+    "server",
+    "middleware",
+    "accept-query",
+    "hono",
+    "content-negotiation"
+  ],
+  "type": "module",
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs"
+    }
+  },
+  "sideEffects": false,
+  "files": [
+    "dist"
+  ],
+  "engines": {
+    "node": ">=18"
+  },
+  "scripts": {
+    "build": "tsup",
+    "dev": "tsup --watch",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "coverage": "vitest run --coverage",
+    "typecheck": "tsc --noEmit",
+    "prepublishOnly": "npm run build"
+  },
+  "author": "Dan Matthew <dannymatthew@gmail.com>",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/DanMat/query-server.git"
+  },
+  "bugs": {
+    "url": "https://github.com/DanMat/query-server/issues"
+  },
+  "homepage": "https://github.com/DanMat/query-server#readme",
+  "publishConfig": {
+    "access": "public"
+  },
+  "dependencies": {
+    "@danmat/accept-query": "^0.1.0"
+  },
+  "devDependencies": {
+    "@vitest/coverage-v8": "^2.1.8",
+    "tsup": "^8.3.5",
+    "typescript": "^5.7.2",
+    "vitest": "^2.1.8"
+  }
+}
