@@ -189,3 +189,104 @@ export function withAcceptQuery(
     headers,
   });
 }
+
+/** Return a copy of `response` with a `Content-Location` header. */
+export function withContentLocation(
+  response: Response,
+  location: string | URL,
+): Response {
+  const headers = new Headers(response.headers);
+  headers.set("content-location", location.toString());
+  return new Response(response.body, {
+    status: response.status,
+    statusText: response.statusText,
+    headers,
+  });
+}
+
+async function getSubtle(): Promise<SubtleCrypto> {
+  const globalCrypto = (globalThis as { crypto?: Crypto }).crypto;
+  if (globalCrypto?.subtle) return globalCrypto.subtle;
+  // Older Node without a global `crypto`; never reached in browsers/workers.
+  const specifier = "node:crypto";
+  const nodeCrypto = (await import(specifier)) as {
+    webcrypto: { subtle: SubtleCrypto };
+  };
+  return nodeCrypto.webcrypto.subtle;
+}
+
+function base64url(buffer: ArrayBuffer): string {
+  const bytes = new Uint8Array(buffer);
+  let binary = "";
+  for (const byte of bytes) binary += String.fromCharCode(byte);
+  return btoa(binary)
+    .replace(/\+/g, "-")
+    .replace(/\//g, "_")
+    .replace(/=+$/, "");
+}
+
+/**
+ * Compute a strong `ETag` (a quoted SHA-256/base64url digest) for a body. A
+ * QUERY response's representation is identified by its bytes, so equal bodies
+ * yield equal tags.
+ */
+export async function etagFor(
+  body: BodyInit | null | undefined,
+): Promise<string> {
+  const bytes =
+    body == null ? new ArrayBuffer(0) : await new Response(body).arrayBuffer();
+  const digest = await (await getSubtle()).digest("SHA-256", bytes);
+  return `"${base64url(digest)}"`;
+}
+
+/** RFC 9110 weak comparison: does `ifNoneMatch` match `etag`? */
+function ifNoneMatchSatisfied(
+  ifNoneMatch: string | null,
+  etag: string,
+): boolean {
+  if (!ifNoneMatch) return false;
+  if (ifNoneMatch.trim() === "*") return true;
+  const strip = (tag: string) => tag.trim().replace(/^W\//, "");
+  const target = strip(etag);
+  return ifNoneMatch.split(",").some((tag) => strip(tag) === target);
+}
+
+/**
+ * Add HTTP revalidation to a response: attach a strong `ETag`, and when the
+ * request's `If-None-Match` already matches, short-circuit to `304 Not
+ * Modified`. Safe for QUERY, which is idempotent and cacheable.
+ *
+ * Only applied to successful (2xx) responses; others pass through unchanged.
+ *
+ * @example
+ * ```ts
+ * return conditional(request, withAcceptQuery(Response.json(results), ACCEPTED));
+ * ```
+ */
+export async function conditional(
+  request: Request,
+  response: Response,
+): Promise<Response> {
+  if (!response.ok) return response;
+
+  const buffer = await response.clone().arrayBuffer();
+  const etag = response.headers.get("etag") ?? (await etagFor(buffer));
+
+  if (ifNoneMatchSatisfied(request.headers.get("if-none-match"), etag)) {
+    const headers = new Headers({ etag });
+    // A 304 carries no body but should echo the caching-relevant headers.
+    for (const name of ["content-location", "cache-control", "vary"]) {
+      const value = response.headers.get(name);
+      if (value) headers.set(name, value);
+    }
+    return new Response(null, { status: 304, headers });
+  }
+
+  const headers = new Headers(response.headers);
+  headers.set("etag", etag);
+  return new Response(buffer, {
+    status: response.status,
+    statusText: response.statusText,
+    headers,
+  });
+}

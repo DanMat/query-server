@@ -70,6 +70,25 @@ Builds an `Accept-Query` header value from the media types you accept (strings a
 
 Returns a copy of `response` with the `Accept-Query` header set — handy on both success and `415` responses.
 
+### `conditional(request, response): Promise<Response>`
+
+HTTP revalidation for QUERY results: attaches a strong `ETag`, and returns `304 Not Modified` when the request's `If-None-Match` already matches (echoing `Content-Location`/`Cache-Control`/`Vary`). Only applied to 2xx responses. QUERY is safe and cacheable, so this is exactly the method conditional requests are meant for.
+
+```ts
+return conditional(
+  request,
+  withContentLocation(withAcceptQuery(Response.json(results), ACCEPTED), request.url),
+);
+```
+
+### `withContentLocation(response, location): Response`
+
+Returns a copy of `response` with a `Content-Location` header (the URL identifying the returned representation).
+
+### `etagFor(body): Promise<string>`
+
+Computes a strong `ETag` (quoted SHA-256/base64url) for a body — equal bytes yield equal tags. Used by `conditional`, exposed for custom flows.
+
 ### `QueryRequestError`
 
 `Error` subclass with `status: number`, `headers: Record<string,string>`, and `toResponse(): Response`.

@@ -3,10 +3,13 @@ import {
   acceptQueryHeader,
   assertQueryRequest,
   checkQueryRequest,
+  conditional,
+  etagFor,
   isQueryRequest,
   QueryRequestError,
   readQueryJson,
   withAcceptQuery,
+  withContentLocation,
 } from "../src/index.js";
 
 const queryReq = (init: RequestInit = {}) =>
@@ -145,5 +148,84 @@ describe("header helpers", () => {
   it("withAcceptQuery attaches the header to a response", () => {
     const res = withAcceptQuery(new Response("ok"), ["application/json"]);
     expect(res.headers.get("accept-query")).toBe("application/json");
+  });
+
+  it("withContentLocation attaches the header to a response", () => {
+    const res = withContentLocation(new Response("ok"), "/results/42");
+    expect(res.headers.get("content-location")).toBe("/results/42");
+  });
+});
+
+describe("etagFor", () => {
+  it("is a quoted string, stable for equal bytes, distinct otherwise", async () => {
+    const a = await etagFor('{"q":1}');
+    const b = await etagFor('{"q":1}');
+    const c = await etagFor('{"q":2}');
+    expect(a).toMatch(/^"[\w-]+"$/);
+    expect(a).toBe(b);
+    expect(a).not.toBe(c);
+  });
+});
+
+describe("conditional", () => {
+  const json = () => Response.json({ ok: true });
+
+  it("attaches an ETag to a 200 response", async () => {
+    const res = await conditional(new Request("https://api.test/s"), json());
+    expect(res.status).toBe(200);
+    expect(res.headers.get("etag")).toMatch(/^"[\w-]+"$/);
+    expect(await res.json()).toEqual({ ok: true });
+  });
+
+  it("returns 304 when If-None-Match matches", async () => {
+    const first = await conditional(new Request("https://api.test/s"), json());
+    const etag = first.headers.get("etag")!;
+
+    const second = await conditional(
+      new Request("https://api.test/s", { headers: { "if-none-match": etag } }),
+      json(),
+    );
+    expect(second.status).toBe(304);
+    expect(second.headers.get("etag")).toBe(etag);
+    expect(await second.text()).toBe("");
+  });
+
+  it("returns 200 when If-None-Match does not match", async () => {
+    const res = await conditional(
+      new Request("https://api.test/s", {
+        headers: { "if-none-match": '"nope"' },
+      }),
+      json(),
+    );
+    expect(res.status).toBe(200);
+  });
+
+  it("treats If-None-Match: * as a match", async () => {
+    const res = await conditional(
+      new Request("https://api.test/s", { headers: { "if-none-match": "*" } }),
+      json(),
+    );
+    expect(res.status).toBe(304);
+  });
+
+  it("echoes Content-Location on the 304", async () => {
+    const withCl = withContentLocation(json(), "/results/42");
+    const first = await conditional(new Request("https://api.test/s"), withCl);
+    const etag = first.headers.get("etag")!;
+
+    const notModified = await conditional(
+      new Request("https://api.test/s", { headers: { "if-none-match": etag } }),
+      withContentLocation(json(), "/results/42"),
+    );
+    expect(notModified.status).toBe(304);
+    expect(notModified.headers.get("content-location")).toBe("/results/42");
+  });
+
+  it("passes non-2xx responses through unchanged", async () => {
+    const res = await conditional(
+      new Request("https://api.test/s", { headers: { "if-none-match": "*" } }),
+      new Response("nope", { status: 500 }),
+    );
+    expect(res.status).toBe(500);
   });
 });

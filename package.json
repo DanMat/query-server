@@ -1,6 +1,6 @@
 {
   "name": "@danmat/query-server",
-  "version": "0.1.2",
+  "version": "0.2.0",
   "description": "Framework-agnostic server helpers for the HTTP QUERY method (RFC 10008): validate requests, negotiate content types, and advertise Accept-Query. Built on Web-standard Request/Response.",
   "keywords": [
     "http",
@@ -12,7 +12,11 @@
     "middleware",
     "accept-query",
     "hono",
-    "content-negotiation"
+    "content-negotiation",
+    "etag",
+    "caching",
+    "conditional-requests",
+    "revalidation"
   ],
   "type": "module",
   "main": "./dist/index.cjs",
