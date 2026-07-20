@@ -104,7 +104,7 @@ Computes a strong `ETag` (quoted SHA-256/base64url) for a body — equal bytes y
 
 ## Interoperability
 
-This suite's server behavior is checked in [**rfc10008-interop**](https://github.com/A1darbek/rfc10008-interop) — an independent, co-maintained RFC 10008 conformance matrix that runs the same checks against the [live example server](https://query-suite-example.danmat.workers.dev/stocks/search) and [Ayder](https://github.com/A1darbek/ayder), and publishes side-by-side receipts.
+This suite's server behavior is exercised in [**rfc10008-interop**](https://github.com/A1darbek/rfc10008-interop) — a neutral, co-maintained RFC 10008 interoperability matrix that runs a shared portable profile against the [live example server](https://query-suite-example.danmat.workers.dev/stocks/search) and [Ayder](https://github.com/A1darbek/ayder), recording capability-aware, side-by-side receipts.
 
 ## License
 
