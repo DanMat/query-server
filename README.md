@@ -102,6 +102,10 @@ Computes a strong `ETag` (quoted SHA-256/base64url) for a body — equal bytes y
 
 ▶️ **See them work together:** [query-suite-example](https://github.com/DanMat/query-suite-example) — a runnable demo using all four, with a **[🌐 live playground](https://query-suite-example.danmat.workers.dev)**.
 
+## Interoperability
+
+This suite's server behavior is checked in [**rfc10008-interop**](https://github.com/A1darbek/rfc10008-interop) — an independent, co-maintained RFC 10008 conformance matrix that runs the same checks against the [live example server](https://query-suite-example.danmat.workers.dev/stocks/search) and [Ayder](https://github.com/A1darbek/ayder), and publishes side-by-side receipts.
+
 ## License
 
 [MIT](./LICENSE) © Dan Matthew
