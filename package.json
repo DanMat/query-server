@@ -1,6 +1,6 @@
 {
   "name": "@danmat/query-server",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "Framework-agnostic server helpers for the HTTP QUERY method (RFC 10008): validate requests, negotiate content types, and advertise Accept-Query. Built on Web-standard Request/Response.",
   "keywords": [
     "http",
